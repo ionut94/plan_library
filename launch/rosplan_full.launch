@@ -6,7 +6,7 @@
 
 	<!-- Commonly modified and compulsory arguments -->
 	<arg name="domain_path"  value="$(find rosplan_demos)/common/domain_turtlebot.pddl"/>
-	<arg name="problem_path" value="$(find rosplan_demos)/common/problem_turtlebot.pddl"/>
+	<arg name="problem_path" value="$(find rosplan_demos)/common/1lineTest.pddl"/>
 	<arg name="planning_language" value="pddl" />
 	<arg name="generated_problem_path"    default="$(find rosplan_demos)/common/problem.pddl" />
 	<arg name="planner_command" value="timeout 10 $(find rosplan_planning_system)/common/bin/popf DOMAIN PROBLEM" />  
@@ -15,6 +15,7 @@
 	<!-- Not commonly modified arguments -->
 	<arg name="knowledge_base" 			  default="rosplan_knowledge_base" />
 	<arg name="planner_topic"  			  default="planner_output" />
+	<arg name="plan_from_lib_topic"		  default="plan_from_lib" />
 	<arg name="plan_topic"     			  default="complete_plan" />
 	<arg name="action_dispatch_topic"     default="action_dispatch" />
 	<arg name="action_feedback_topic"     default="action_feedback" />
@@ -22,6 +23,7 @@
 	<arg name="use_unknowns" 			  default="false" />
 	<arg name="use_problem_topic"         default="true" />
 	<arg name="problem_topic"    		  default="problem_instance" />
+	<arg name="planner_input_topic"		  default="planner_input" />
 	<arg name="ippc_server_port" 		  default="3234" />
     <arg name="compute_rewards" 		  default="true" />
 
@@ -51,9 +53,13 @@
 
 
 	<node name="plan_lib" pkg="plan_library" type="plan_library.py" respawn="false" output="screen">
-        <param name="domain_path" value="$(arg domain_path)" />
-        <param name="problem_path" value="$(arg problem_path)" />
-		<param name="stored_plans_path" value="$(find plan_library)/common/plans.txt" />
+        <param name="domain_path" 			value="$(arg domain_path)" />
+        <param name="problem_path" 			value="$(arg problem_path)" />
+		<param name="stored_plans_path" 	value="$(find plan_library)/common/plans.yaml" />
+		<param name="problem_instance"		value="/rosplan_problem_interface/problem_instance" />
+		<param name="planner_output"		value="/rosplan_planner_interface/planner_output" />
+		<param name="planner_input_topic" 	value="$(arg planner_input_topic)" />
+		<param name="plan_from_lib_topic"	value="$(arg plan_from_lib_topic)" />
 <!--        <param name="robot_name" value="$(arg robot_name)" />-->
 	</node>
 
@@ -61,7 +67,8 @@
 	<!-- planner interface -->
 	<include file="$(find rosplan_planning_system)/launch/includes/planner_interface.launch">
 		<arg name="use_problem_topic"    value="$(arg use_problem_topic)" />
-		<arg name="problem_topic"        value="/rosplan_problem_interface/$(arg problem_topic)" />
+<!--		<arg name="problem_topic"        value="/rosplan_problem_interface/$(arg problem_topic)" />-->
+		<arg name="problem_topic"        value="/plan_lib/$(arg planner_input_topic)" />
 		<arg name="planner_topic"        value="$(arg planner_topic)" />
 		<arg name="domain_path"          value="$(arg domain_path)" />
 		<arg name="problem_path"         value="$(arg generated_problem_path)" />
@@ -74,7 +81,8 @@
 		<!-- plan parsing -->
 		<node name="rosplan_parsing_interface" pkg="rosplan_planning_system" type="pddl_simple_plan_parser" respawn="false" output="screen">
 			<param name="knowledge_base" value="$(arg knowledge_base)" />
-			<param name="planner_topic"  value="/rosplan_planner_interface/$(arg planner_topic)" />
+<!--			<param name="planner_topic"  value="/rosplan_planner_interface/$(arg planner_topic)" />-->
+			<param name="planner_topic"  value="/plan_lib/$(arg plan_from_lib_topic)" />
 			<param name="plan_topic"     value="$(arg plan_topic)" />
 		</node>
 
@@ -91,7 +99,8 @@
 		<!-- plan parsing -->
 		<node name="rosplan_parsing_interface" pkg="rosplan_planning_system" type="pddl_esterel_plan_parser" respawn="false" output="screen">
 			<param name="knowledge_base" value="$(arg knowledge_base)" />
-			<param name="planner_topic"  value="/rosplan_planner_interface/$(arg planner_topic)" />
+<!--			<param name="planner_topic"  value="/rosplan_planner_interface/$(arg planner_topic)" />-->
+			<param name="planner_topic"  value="/plan_lib/$(arg plan_from_lib_topic)" />
 			<param name="plan_topic"     value="$(arg plan_topic)" />
 		</node>
 
