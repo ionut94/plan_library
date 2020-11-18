@@ -13,6 +13,10 @@ class PlanLibrary:
         self.node_name = rospy.get_name()
         rospy.loginfo("KCL: (%s) Plan Library initialising..." % self.node_name)
 
+        self.latest_plan = ""
+        self.latest_plan_time = 0
+        self.latest_problem = ""
+        self.latest_problem_time = 0
         self.plans_path = str(rospy.get_param("~stored_plans_path"))
         self.plan_dictionary = self.load_plan_library()
         self.problem_dictionary = {}
@@ -24,6 +28,7 @@ class PlanLibrary:
         rospy.Subscriber(rospy.get_param("~planner_output"), String, self.planner_callback)
 
     # Receive plan and save it into the planLib object
+    # TODO: Change the name for the entry in the plan library
     def planner_callback(self, data):
         self.latest_plan = data.data
         self.latest_plan_time = rospy.Time.now()
@@ -32,7 +37,6 @@ class PlanLibrary:
         self.plan_dictionary["test"] = self.problem_dictionary["test"]
 
         self.save_plan_library()
-
         self.plan_lib_output_pub.publish(self.latest_plan)
 
     # Receive problem and save it into the planLib object
