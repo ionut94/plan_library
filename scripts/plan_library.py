@@ -2,9 +2,11 @@
 
 import rospy
 from std_msgs.msg import String
+from rosplan_knowledge_msgs.srv import GetDomainNameService, GetDomainTypeService, GetDomainOperatorService, \
+    GetDomainAttributeService
 import yaml
-# import pprint
-# pp = pprint.PrettyPrinter(indent=1)
+import pprint
+pp = pprint.PrettyPrinter(indent=1)
 
 
 class PlanLibrary:
@@ -13,6 +15,7 @@ class PlanLibrary:
         self.node_name = rospy.get_name()
         rospy.loginfo("KCL: (%s) Plan Library initialising..." % self.node_name)
 
+        # Initialisation
         self.latest_plan = ""
         self.latest_plan_time = 0
         self.latest_problem = ""
@@ -21,11 +24,73 @@ class PlanLibrary:
         self.plan_dictionary = self.load_plan_library()
         self.problem_dictionary = {}
 
+        # Get the domain from plan lib or initialise it from KB
+        if "domain" not in self.plan_dictionary.keys():
+            self.plan_dictionary["domain"] = self.get_domain_information_from_KB()
+        self.domain = self.plan_dictionary["domain"]
+
+        # Create publishers to planner and plan_parser
         self.planner_input_pub = rospy.Publisher("~" + rospy.get_param("~planner_input_topic"), String, queue_size=1)
         self.plan_lib_output_pub = rospy.Publisher("~" + rospy.get_param("~plan_from_lib_topic"), String, queue_size=1)
 
+        # Create subscribers to prob_generation and planner
         rospy.Subscriber(rospy.get_param("~problem_instance"), String, self.problem_callback)
         rospy.Subscriber(rospy.get_param("~planner_output"), String, self.planner_callback)
+
+
+
+    def get_domain_information_from_KB(self):
+        rospy.loginfo("KCL: (%s) Getting domain info from KB" % self.node_name)
+
+        domain_service_name = '/rosplan_knowledge_base/domain/name'
+        type_service_name = '/rosplan_knowledge_base/domain/types'
+        operators_service_name = '/rosplan_knowledge_base/domain/operators'
+        predicate_service_name = '/rosplan_knowledge_base/domain/predicates'
+        functions_service_name = '/rosplan_knowledge_base/domain/functions'
+
+        domain_dict = {"has": []}
+
+        try:
+            rospy.wait_for_service(predicate_service_name)
+            domain_predicates_srv = rospy.ServiceProxy(predicate_service_name, GetDomainAttributeService)
+            predicate = {}
+            for item in domain_predicates_srv().items:
+                predicate[item.name] = [x.value for x in item.typed_parameters]
+            domain_dict["predicate"] = predicate
+            domain_dict["has"].append("predicates")
+        except (rospy.ServiceException, rospy.ROSException), e:
+            rospy.logerr("Service call failed: %s" % (e,))
+
+        try:
+            rospy.wait_for_service(domain_service_name)
+            domain_name_srv = rospy.ServiceProxy(domain_service_name, GetDomainNameService)
+
+            domain_dict["name"] = domain_name_srv().domain_name
+            domain_dict["has"].append("name")
+        except (rospy.ServiceException, rospy.ROSException), e:
+            rospy.logerr("Service call failed: %s" % (e,))
+
+        try:
+            rospy.wait_for_service(type_service_name)
+            domain_type_srv = rospy.ServiceProxy(type_service_name, GetDomainTypeService)
+            domain_dict["types"] = domain_type_srv().types
+            domain_dict["has"].append("types")
+        except (rospy.ServiceException, rospy.ROSException), e:
+            rospy.logerr("Service call failed: %s" % (e,))
+
+        try:
+            rospy.wait_for_service(operators_service_name)
+            domain_operators_srv = rospy.ServiceProxy(operators_service_name, GetDomainOperatorService)
+            operators = {}
+            for operator in domain_operators_srv().operators:
+                operators[operator.name] = [x.value for x in operator.typed_parameters]
+            domain_dict["operators"] = operators
+            domain_dict["has"].append("operators")
+        except (rospy.ServiceException, rospy.ROSException), e:
+            rospy.logerr("Service call failed: %s" % (e,))
+
+        return domain_dict
+
 
     # Receive plan and save it into the planLib object
     # TODO: Change the name for the entry in the plan library
@@ -128,6 +193,8 @@ class PlanLibrary:
             loaded_plan_lib = yaml.load(plan_lib, Loader=yaml.FullLoader)
 
         return loaded_plan_lib
+
+
 
 
 if __name__ == "__main__":
