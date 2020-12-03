@@ -37,11 +37,11 @@ class PlanLibrary:
         rospy.Subscriber(rospy.get_param("~problem_instance"), String, self.problem_callback)
         rospy.Subscriber(rospy.get_param("~planner_output"), String, self.planner_callback)
 
-
-
+    # Get domain from the KB via service calls
     def get_domain_information_from_KB(self):
         rospy.loginfo("KCL: (%s) Getting domain info from KB" % self.node_name)
 
+        # The service names
         domain_service_name = '/rosplan_knowledge_base/domain/name'
         type_service_name = '/rosplan_knowledge_base/domain/types'
         operators_service_name = '/rosplan_knowledge_base/domain/operators'
@@ -59,8 +59,21 @@ class PlanLibrary:
             domain_dict["predicate"] = predicate
             domain_dict["has"].append("predicates")
         except (rospy.ServiceException, rospy.ROSException), e:
-            rospy.logerr("Service call failed: %s" % (e,))
+            rospy.logerr("Service call (predicates) failed: %s" % (e,))
 
+        # Getting the functions from KB
+        try:
+            rospy.wait_for_service(functions_service_name)
+            domain_function_srv = rospy.ServiceProxy(functions_service_name, GetDomainAttributeService)
+            functions = {}
+            for item in domain_function_srv().items:
+                functions[item.name] = [x.value for x in item.typed_parameters]
+            domain_dict["function"] = functions
+            domain_dict["has"].append("functions")
+        except (rospy.ServiceException, rospy.ROSException), e:
+            rospy.logerr("Service call (functions) failed: %s" % (e,))
+
+        # Getting the domain name from KB
         try:
             rospy.wait_for_service(domain_service_name)
             domain_name_srv = rospy.ServiceProxy(domain_service_name, GetDomainNameService)
@@ -68,16 +81,18 @@ class PlanLibrary:
             domain_dict["name"] = domain_name_srv().domain_name
             domain_dict["has"].append("name")
         except (rospy.ServiceException, rospy.ROSException), e:
-            rospy.logerr("Service call failed: %s" % (e,))
+            rospy.logerr("Service call (name) failed: %s" % (e,))
 
+        # Getting the types from KB
         try:
             rospy.wait_for_service(type_service_name)
             domain_type_srv = rospy.ServiceProxy(type_service_name, GetDomainTypeService)
             domain_dict["types"] = domain_type_srv().types
             domain_dict["has"].append("types")
         except (rospy.ServiceException, rospy.ROSException), e:
-            rospy.logerr("Service call failed: %s" % (e,))
+            rospy.logerr("Service call (types) failed: %s" % (e,))
 
+        # Getting the operators from KB
         try:
             rospy.wait_for_service(operators_service_name)
             domain_operators_srv = rospy.ServiceProxy(operators_service_name, GetDomainOperatorService)
@@ -87,7 +102,7 @@ class PlanLibrary:
             domain_dict["operators"] = operators
             domain_dict["has"].append("operators")
         except (rospy.ServiceException, rospy.ROSException), e:
-            rospy.logerr("Service call failed: %s" % (e,))
+            rospy.logerr("Service call (operators) failed: %s" % (e,))
 
         return domain_dict
 
