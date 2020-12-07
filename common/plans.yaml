@@ -1,37 +1,4 @@
-problem_name:
-  goal:
-  - visited wp0
-  - visited wp1
-  - visited wp2
-  - visited wp3
-  - visited wp5
-  - docked kenny
-  - '> charge kenny 0'
-  init:
-  - robot_at kenny wp0
-  - docked kenny
-  - dock_at wp0
-  - = charge kenny 0
-  objects:
-    robot:
-    - kenny
-    waypoint:
-    - wp0
-    - wp1
-    - wp2
-    - wp3
-    - wp5
-  plan: '0.000: (undock kenny wp0)  [10.000] 10.001: (localise kenny)  [60.000] 70.002:
-    (goto_waypoint kenny wp0 wp1)  [60.000] 130.003: (goto_waypoint kenny wp1 wp2)  [60.000]
-    190.004: (goto_waypoint kenny wp2 wp3)  [60.000] 250.005: (goto_waypoint kenny
-    wp3 wp5)  [60.000] 310.006: (goto_waypoint kenny wp5 wp0)  [60.000] 370.007: (dock
-    kenny wp0)  [30.000]'
-  problem: (define (problem task)(:domain turtlebot)(:objects    wp0 wp1 wp2 wp3 wp4
-    wp5 - waypoint    kenny - robot)(:init    (robot_at kenny wp0)    (docked kenny)    (dock_at
-    wp0)    (= (charge kenny) 0))(:goal (and    (visited wp0)    (visited wp1)    (visited
-    wp2)    (visited wp3)    (visited wp4)    (docked kenny)    (>  (charge kenny)
-    0))))
-test:
+'228935808157267':
   goal:
     charge:
     - - '>'
@@ -44,7 +11,7 @@ test:
     - - wp1
     - - wp2
     - - wp3
-    - - wp4
+    - - wp5
   init:
     charge:
     - - '='
@@ -65,7 +32,7 @@ test:
     - wp1
     - wp2
     - wp3
-    - wp4
+    - wp5
   plan: '0.000: (undock kenny wp0)  [10.000]
 
     10.001: (localise kenny)  [60.000]
@@ -76,15 +43,56 @@ test:
 
     190.004: (goto_waypoint kenny wp2 wp3)  [60.000]
 
-    250.005: (goto_waypoint kenny wp3 wp4)  [60.000]
+    250.005: (goto_waypoint kenny wp3 wp5)  [60.000]
 
-    310.006: (goto_waypoint kenny wp4 wp0)  [60.000]
+    310.006: (goto_waypoint kenny wp5 wp0)  [60.000]
 
     370.007: (dock kenny wp0)  [30.000]
 
     '
-  problem: (define (problem task)(:domain turtlebot)(:objects    wp0 wp1 wp2 wp3 wp4
+  problem: (define (problem task)(:domain turtlebot)(:objects    wp0 wp1 wp2 wp3 wp5
     - waypoint    kenny - robot)(:init    (robot_at kenny wp0)    (docked kenny)    (dock_at
     wp0)    (= (charge kenny) 0))(:goal (and    (visited wp0)    (visited wp1)    (visited
-    wp2)    (visited wp3)    (visited wp4)    (docked kenny)    (>  (charge kenny)
+    wp2)    (visited wp3)    (visited wp5)    (docked kenny)    (>  (charge kenny)
     0))))
+domain:
+  function:
+    charge:
+    - robot
+  has:
+  - predicates
+  - functions
+  - name
+  - types
+  - operators
+  name: turtlebot
+  operators:
+    dock:
+    - robot
+    - waypoint
+    goto_waypoint:
+    - robot
+    - waypoint
+    - waypoint
+    localise:
+    - robot
+    undock:
+    - robot
+    - waypoint
+  predicate:
+    dock_at:
+    - waypoint
+    docked:
+    - robot
+    localised:
+    - robot
+    robot_at:
+    - robot
+    - waypoint
+    undocked:
+    - robot
+    visited:
+    - waypoint
+  types:
+  - waypoint
+  - robot
