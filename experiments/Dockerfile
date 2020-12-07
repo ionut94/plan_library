@@ -7,6 +7,7 @@ WORKDIR /root/ws
 # Clone plan_lib
 RUN git clone https://github.com/ionut94/plan_library.git src/plan_library
 
+RUN sudo apt update && sudo apt install python-pip -y && sudo pip install pyyaml
 
 # Further dependencies
 RUN apt install ros-melodic-rviz-visual-tools -qq -y &&\
