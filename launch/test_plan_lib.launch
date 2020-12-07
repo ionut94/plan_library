@@ -8,7 +8,7 @@
 	<arg name="domain_path"  value="$(find plan_library)/common/domain_turtlebot.pddl"/>
 	<arg name="problem_path" value="$(find plan_library)/common/1lineTest.pddl"/>
 	<arg name="planning_language" value="pddl" />
-	<arg name="generated_problem_path"    default="$(find rosplan_demos)/common/problem.pddl" />
+	<arg name="generated_problem_path"    default="$(find plan_library)/common/problem.pddl" />
 	<arg name="planner_command" value="timeout 10 $(find rosplan_planning_system)/common/bin/popf DOMAIN PROBLEM" />  
 	<arg name="planner_interface" value="popf_planner_interface"/>   
 	
@@ -19,7 +19,7 @@
 	<arg name="plan_topic"     			  default="complete_plan" />
 	<arg name="action_dispatch_topic"     default="action_dispatch" />
 	<arg name="action_feedback_topic"     default="action_feedback" />
-	<arg name="data_path"            	  default="$(find rosplan_demos)/common/" />
+	<arg name="data_path"            	  default="$(find plan_library)/common/" />
 	<arg name="use_unknowns" 			  default="false" />
 	<arg name="use_problem_topic"         default="true" />
 	<arg name="problem_topic"    		  default="problem_instance" />
