@@ -18,5 +18,5 @@ RUN apt install ros-melodic-rviz-visual-tools -qq -y &&\
 RUN catkin build --summarize --no-status
 
 # Important to run this from the run_docker.sh script
-ENTRYPOINT ["bash", "/root/ws/src/plan_library/experiments"]
+ENTRYPOINT ["bash", "/root/ws/src/plan_library/experiments/run_experiment.sh"]
 
