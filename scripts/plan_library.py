@@ -45,8 +45,8 @@ class PlanLibrary:
         self.latest_plan = data.data
         self.latest_plan_time = rospy.Time.now()
 
-        self.problem_dictionary["current"].update({"plan": self.latest_plan})
-        self.plan_dictionary[str(uuid.uuid1().node)] = self.problem_dictionary["current"]
+        self.problem_dictionary.update({"plan": self.latest_plan})
+        self.plan_dictionary[str(uuid.uuid1().node)] = self.problem_dictionary
 
         self.save_plan_library()
         self.plan_lib_output_pub.publish(self.latest_plan)
@@ -56,7 +56,7 @@ class PlanLibrary:
         self.latest_problem = data.data
         self.latest_problem_time = rospy.Time.now()
 
-        self.problem_dictionary["current"] = self.parse_problem_to_dict(self.latest_problem)
+        self.problem_dictionary = self.parse_problem_to_dict(self.latest_problem)
 
         check, plans = self.check_for_plan_in_library()
         if check:
@@ -73,14 +73,23 @@ class PlanLibrary:
         count = 0
         plans = []
 
-        for problem_key, problem_data in self.plan_dictionary.iteritems():
-            if problem_key not in "domain":
-                if problem_data['problem'] in self.latest_problem.replace("\n", ""):
+        for key, plan_lib_elem in self.plan_dictionary.iteritems():
+            if key not in "domain":
+                if plan_lib_elem['problem'] in self.latest_problem.replace("\n", ""):
                     count += 1
-                    plans.append(problem_data['plan'])
+                    plans.append(plan_lib_elem['plan'])
                 else:
-                    # TODO Check for plan possible to be modified from existing plan.
+                    # TODO Check for goals
                     pass
+
+                    # if all(elem in plan_lib_elem["goal"].keys() for elem in self.problem_dictionary["goal"].keys()):
+                    #     goals_match = True
+                    #     for goal_key, goal_predicate in self.problem_dictionary["goal"].iteritems():
+                    #         for goals in goal_predicate:
+                    #             if goals not in plan_lib_elem["goal"][str(goal_key)]:
+                    #                 goals_match = False
+                    #                 break
+                    #             # if all(items in problem_data[])
 
         if count > 0:
             return True, plans
@@ -105,9 +114,9 @@ class PlanLibrary:
                 if status[0]:
                     object_dict[line.split("-")[1]] = filter(None, line.split("-")[0].split(" "))
                 elif status[1]:
-                    self.process_line_for_parsing(init_dict, line)
+                    self.process_line_for_planlib(init_dict, line)
                 elif status[2]:
-                    self.process_line_for_parsing(goal_dict, line)
+                    self.process_line_for_planlib(goal_dict, line)
 
         problem_dict = {"problem": string_to_trim.replace("\n", ""), "object": object_dict, "init": init_dict,
                         "goal": goal_dict}
@@ -116,7 +125,7 @@ class PlanLibrary:
 
     # Parse each line from init and goal of the problem
     @staticmethod
-    def process_line_for_parsing(param_dict, line):
+    def process_line_for_planlib(param_dict, line):
         split_line = filter(None, line.replace("(", "").replace(")", "").split(" "))
 
         # TODO: change this to see if functions are in the domain
