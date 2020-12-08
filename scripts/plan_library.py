@@ -15,23 +15,26 @@ class PlanLibrary:
 
     def __init__(self):
         self.node_name = rospy.get_name()
-        rospy.loginfo("KCL: (%s) Plan Library initialising..." % self.node_name)
-
         self.use_library = rospy.get_param("~use_library")
 
-        # Initialisation
-        self.latest_plan = ""
-        self.latest_plan_time = 0
-        self.latest_problem = ""
-        self.latest_problem_time = 0
-        self.plans_path = str(rospy.get_param("~stored_plans_path"))
-        self.plan_dictionary = self.load_plan_library()
-        self.problem_dictionary = {}
+        if self.use_library:
+            rospy.loginfo("KCL: (%s) Plan Library initialising..." % self.node_name)
 
-        # Get the domain from plan lib or initialise it from KB
-        if self.plan_dictionary is None:
-            self.plan_dictionary = {"domain": self.get_domain_from_KB()}
-        self.domain = self.plan_dictionary["domain"]
+            # Initialisation
+            self.latest_plan = ""
+            self.latest_plan_time = 0
+            self.latest_problem = ""
+            self.latest_problem_time = 0
+            self.plans_path = str(rospy.get_param("~stored_plans_path"))
+            self.plan_dictionary = self.load_plan_library()
+            self.problem_dictionary = {}
+
+            # Get the domain from plan lib or initialise it from KB
+            if self.plan_dictionary is None:
+                self.plan_dictionary = {"domain": self.get_domain_from_KB()}
+            self.domain = self.plan_dictionary["domain"]
+        else:
+            rospy.loginfo("KCL: (%s) Plan Library not in use" % self.node_name)
 
         # Create publishers to planner and plan_parser
         self.planner_input_pub = rospy.Publisher("~" + rospy.get_param("~planner_input_topic"), String, queue_size=1)
@@ -42,31 +45,36 @@ class PlanLibrary:
         rospy.Subscriber(rospy.get_param("~planner_output"), String, self.planner_callback)
 
     # Receive plan and save it into the planLib object
-    # TODO: Change the name for the entry in the plan library
     def planner_callback(self, data):
         self.latest_plan = data.data
         self.latest_plan_time = rospy.Time.now()
 
-        self.problem_dictionary.update({"plan": self.latest_plan})
-        self.plan_dictionary[str(uuid.uuid1().node)] = self.problem_dictionary
+        if self.use_library:
 
-        self.save_plan_library()
+            # Add new plan to library
+            self.problem_dictionary.update({"plan": self.latest_plan})
+            self.plan_dictionary[str(uuid.uuid1().node)] = self.problem_dictionary
+            self.save_plan_library()
+
         self.plan_lib_output_pub.publish(self.latest_plan)
 
     # Receive problem and save it into the planLib object
     def problem_callback(self, data):
         self.latest_problem = data.data
         self.latest_problem_time = rospy.Time.now()
-
         self.problem_dictionary = self.parse_problem_to_dict(self.latest_problem)
 
-        check, plans = self.check_for_plan_in_library()
-        if check:
-            # self.latest_problem
-            rospy.loginfo("KCL: (%s) There is a plan for this problem in the plan library" % self.node_name)
-            self.plan_lib_output_pub.publish(plans[0])
+        if self.use_library:
+            check, plans = self.check_for_plan_in_library()
+
+            if check:
+                # self.latest_problem
+                rospy.loginfo("KCL: (%s) There is a plan for this problem in the plan library" % self.node_name)
+                self.plan_lib_output_pub.publish(plans[0])
+            else:
+                rospy.loginfo("KCL: (%s) Problem not in the plan library" % self.node_name)
+                self.planner_input_pub.publish(self.latest_problem)
         else:
-            rospy.loginfo("KCL: (%s) Problem not in the plan library" % self.node_name)
             self.planner_input_pub.publish(self.latest_problem)
 
     # Check if the latest problem is already in our plan library

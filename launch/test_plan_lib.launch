@@ -11,15 +11,16 @@
 	<arg name="generated_problem_path"    default="$(find plan_library)/common/problem.pddl" />
 	<arg name="planner_command" value="timeout 10 $(find rosplan_planning_system)/common/bin/popf DOMAIN PROBLEM" />  
 	<arg name="planner_interface" value="popf_planner_interface"/>
-	<arg name="use_library" value="true" />
-	
+
 	<!-- Not commonly modified arguments -->
+	<arg name="use_library" 			  default="true" />
 	<arg name="knowledge_base" 			  default="rosplan_knowledge_base" />
 	<arg name="planner_topic"  			  default="planner_output" />
 	<arg name="plan_from_lib_topic"		  default="plan_from_lib" />
 	<arg name="plan_topic"     			  default="complete_plan" />
 	<arg name="action_dispatch_topic"     default="action_dispatch" />
 	<arg name="action_feedback_topic"     default="action_feedback" />
+	<arg name="stored_plans_path" 		  default="$(find plan_library)/common/plans.yaml" />
 	<arg name="data_path"            	  default="$(find plan_library)/common/" />
 	<arg name="use_unknowns" 			  default="false" />
 	<arg name="use_problem_topic"         default="true" />
@@ -45,17 +46,11 @@
 		<arg name="problem_topic"     value="$(arg problem_topic)" />
 		<arg name="planning_language" value="$(arg planning_language)" />
 	</include>
-	
-	<!-- scene database (MongoDB) -->
-	<!--<include file="$(find mongodb_store)/launch/mongodb_store.launch">
-		<arg name="db_path" value="$(arg database_path)"/>
-	</include>-->
-
 
 	<node name="plan_library" pkg="plan_library" type="plan_library.py" respawn="false" output="screen">
         <param name="domain_path" 			value="$(arg domain_path)" />
         <param name="problem_path" 			value="$(arg problem_path)" />
-		<param name="stored_plans_path" 	value="$(find plan_library)/common/plans.yaml" />
+		<param name="stored_plans_path" 	value="$(arg stored_plans_path)" />
 		<param name="problem_instance"		value="/rosplan_problem_interface/problem_instance" />
 		<param name="planner_output"		value="/rosplan_planner_interface/planner_output" />
 		<param name="planner_input_topic" 	value="$(arg planner_input_topic)" />
