@@ -17,6 +17,8 @@ class PlanLibrary:
         self.node_name = rospy.get_name()
         rospy.loginfo("KCL: (%s) Plan Library initialising..." % self.node_name)
 
+        self.use_library = rospy.get_param("~use_library")
+
         # Initialisation
         self.latest_plan = ""
         self.latest_plan_time = 0

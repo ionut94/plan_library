@@ -10,7 +10,8 @@
 	<arg name="planning_language" value="pddl" />
 	<arg name="generated_problem_path"    default="$(find plan_library)/common/problem.pddl" />
 	<arg name="planner_command" value="timeout 10 $(find rosplan_planning_system)/common/bin/popf DOMAIN PROBLEM" />  
-	<arg name="planner_interface" value="popf_planner_interface"/>   
+	<arg name="planner_interface" value="popf_planner_interface"/>
+	<arg name="use_library" value="true" />
 	
 	<!-- Not commonly modified arguments -->
 	<arg name="knowledge_base" 			  default="rosplan_knowledge_base" />
@@ -43,7 +44,6 @@
 		<arg name="problem_path"      value="$(arg generated_problem_path)" />
 		<arg name="problem_topic"     value="$(arg problem_topic)" />
 		<arg name="planning_language" value="$(arg planning_language)" />
-
 	</include>
 	
 	<!-- scene database (MongoDB) -->
@@ -60,7 +60,7 @@
 		<param name="planner_output"		value="/rosplan_planner_interface/planner_output" />
 		<param name="planner_input_topic" 	value="$(arg planner_input_topic)" />
 		<param name="plan_from_lib_topic"	value="$(arg plan_from_lib_topic)" />
-<!--        <param name="robot_name" value="$(arg robot_name)" />-->
+		<param name="use_library" 			value="$(arg use_library)" />
 	</node>
 
 
