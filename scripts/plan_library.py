@@ -2,6 +2,8 @@
 
 import rospy
 from std_msgs.msg import String
+from std_srvs.srv import Trigger, TriggerResponse, Empty
+from rosplan_dispatch_msgs.srv import DispatchService, DispatchServiceResponse
 from rosplan_knowledge_msgs.srv import GetDomainNameService, GetDomainTypeService, GetDomainOperatorService, \
     GetDomainAttributeService
 import yaml
@@ -32,9 +34,23 @@ class PlanLibrary:
             # Get the domain from plan lib or initialise it from KB
             if self.plan_dictionary is None:
                 self.plan_dictionary = {"domain": self.get_domain_from_KB()}
+
             self.domain = self.plan_dictionary["domain"]
         else:
             rospy.loginfo("KCL: (%s) Plan Library not in use" % self.node_name)
+
+        self.plan_in_lib = False
+        self._plan_lib_checked = False
+        self._problem_sent = False
+
+        # TODO make service that calls all the services needed to run plan lib until successes
+        self._execute_current_problem = rospy.Service("~execute_current_problem", Trigger, self.run_problem)
+
+        # The rosplan service calls for executing the problem
+        self._problem_gen = rospy.ServiceProxy("/rosplan_problem_interface/problem_generation_server", Empty)
+        self._planner = rospy.ServiceProxy("/rosplan_planner_interface/planning_server", Empty)
+        self._parse_plan = rospy.ServiceProxy("/rosplan_parsing_interface/parse_plan", Empty)
+        self._dispatch_plan = rospy.ServiceProxy("/rosplan_plan_dispatcher/dispatch_plan", DispatchService)
 
         # Create publishers to planner and plan_parser
         self.planner_input_pub = rospy.Publisher("~" + rospy.get_param("~planner_input_topic"), String, queue_size=1)
@@ -44,19 +60,43 @@ class PlanLibrary:
         rospy.Subscriber(rospy.get_param("~problem_instance"), String, self.problem_callback)
         rospy.Subscriber(rospy.get_param("~planner_output"), String, self.planner_callback)
 
+    def run_problem(self, srv):
+        res = DispatchServiceResponse()
+
+        while not res.goal_achieved:
+            try:
+                self._problem_gen.call()
+
+                while not self._plan_lib_checked:
+                    rospy.sleep(0.5)
+                self._plan_lib_checked = False
+                if not self.plan_in_lib:
+                    self._planner.call()
+
+                while not self._problem_sent:
+                    rospy.sleep(1)
+                self._problem_sent = False
+
+                self._parse_plan.call()
+                res = self._dispatch_plan.call()
+            except rospy.ServiceException as e:
+                rospy.logerr(rospy.get_name() + ": Service call failed: %s" % e)
+
+        return TriggerResponse(True, 'problem planned and executed')
+
     # Receive plan and save it into the planLib object
     def planner_callback(self, data):
         self.latest_plan = data.data
         self.latest_plan_time = rospy.Time.now()
 
         if self.use_library:
-
             # Add new plan to library
             self.problem_dictionary.update({"plan": self.latest_plan})
             self.plan_dictionary[str(uuid.uuid1().node)] = self.problem_dictionary
             self.save_plan_library()
 
         self.plan_lib_output_pub.publish(self.latest_plan)
+        self._problem_sent = True
 
     # Receive problem and save it into the planLib object
     def problem_callback(self, data):
@@ -68,14 +108,16 @@ class PlanLibrary:
             check, plans = self.check_for_plan_in_library()
 
             if check:
-                # self.latest_problem
                 rospy.loginfo("KCL: (%s) There is a plan for this problem in the plan library" % self.node_name)
                 self.plan_lib_output_pub.publish(plans[0])
+                self.plan_in_lib = True
             else:
                 rospy.loginfo("KCL: (%s) Problem not in the plan library" % self.node_name)
                 self.planner_input_pub.publish(self.latest_problem)
+                self.plan_in_lib = False
         else:
             self.planner_input_pub.publish(self.latest_problem)
+        self._plan_lib_checked = True
 
     # Check if the latest problem is already in our plan library
     # TODO Implement a more robust version of searching for a plan in the PlanLib

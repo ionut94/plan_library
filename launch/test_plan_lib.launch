@@ -5,12 +5,14 @@
 	<arg name="dispatcher" default="simple" /> <!-- simple, esterel or online -->
 
 	<!-- Commonly modified and compulsory arguments -->
-	<arg name="domain_path"  value="$(find plan_library)/common/domain_turtlebot.pddl"/>
-	<arg name="problem_path" value="$(find plan_library)/common/1lineTest.pddl"/>
-	<arg name="planning_language" value="pddl" />
-	<arg name="generated_problem_path"    default="$(find plan_library)/common/problem.pddl" />
-	<arg name="planner_command" value="timeout 10 $(find rosplan_planning_system)/common/bin/popf DOMAIN PROBLEM" />  
-	<arg name="planner_interface" value="popf_planner_interface"/>
+	<arg name="domain_path"  			value="$(find plan_library)/common/domain_office.pddl"/>
+	<arg name="problem_path" 			value="$(find plan_library)/common/problem_office.pddl"/>
+	<arg name="planning_language" 		value="pddl" />
+	<arg name="generated_problem_path"  default="$(find plan_library)/common/problem.pddl" />
+	<arg name="planner_command" 		value="timeout 10 $(find rosplan_planning_system)/common/bin/popf DOMAIN PROBLEM" />
+	<arg name="planner_interface" 		value="popf_planner_interface"/>
+	<arg name="action_probability"		default="1" />
+	<arg name="action_duration"			value="0.5" />
 
 	<!-- Not commonly modified arguments -->
 	<arg name="use_library" 			  default="true" />
@@ -20,7 +22,7 @@
 	<arg name="plan_topic"     			  default="complete_plan" />
 	<arg name="action_dispatch_topic"     default="action_dispatch" />
 	<arg name="action_feedback_topic"     default="action_feedback" />
-	<arg name="stored_plans_path" 		  default="$(find plan_library)/common/plans.yaml" />
+	<arg name="stored_plans_path" 		  default="$(find plan_library)/common/office_planlib.yaml" />
 	<arg name="data_path"            	  default="$(find plan_library)/common/" />
 	<arg name="use_unknowns" 			  default="false" />
 	<arg name="use_problem_topic"         default="true" />
@@ -119,5 +121,53 @@
             <param name="compute_rewards" 		value="$(arg compute_rewards)" />
 		</node>
 	</group>
+
+	<include file="$(find rosplan_planning_system)/launch/includes/simulated_action.launch" >
+		<arg name="pddl_action_name" 	value="ask_person" />
+		<arg name="action_probability"	value="$(arg action_probability)" />
+		<arg name="action_duration"		value="$(arg action_duration)" />
+	</include>
+
+	<include file="$(find rosplan_planning_system)/launch/includes/simulated_action.launch" >
+		<arg name="pddl_action_name" value="find_person" />
+		<arg name="action_probability"	value="$(arg action_probability)" />
+		<arg name="action_duration"		value="$(arg action_duration)" />
+	</include>
+
+	<include file="$(find rosplan_planning_system)/launch/includes/simulated_action.launch" >
+		<arg name="pddl_action_name" value="give_object" />
+		<arg name="action_probability"	value="$(arg action_probability)" />
+		<arg name="action_duration"		value="$(arg action_duration)" />
+	</include>
+
+	<include file="$(find rosplan_planning_system)/launch/includes/simulated_action.launch" >
+		<arg name="pddl_action_name" value="goto_waypoint" />
+		<arg name="action_probability"	value="1.0" />
+		<arg name="action_duration"		value="$(arg action_duration)" />
+	</include>
+
+	<include file="$(find rosplan_planning_system)/launch/includes/simulated_action.launch" >
+		<arg name="pddl_action_name" value="grasp_object" />
+		<arg name="action_probability"	value="$(arg action_probability)" />
+		<arg name="action_duration"		value="$(arg action_duration)" />
+	</include>
+
+	<include file="$(find rosplan_planning_system)/launch/includes/simulated_action.launch" >
+		<arg name="pddl_action_name" value="place_object" />
+		<arg name="action_probability"	value="$(arg action_probability)" />
+		<arg name="action_duration"		value="$(arg action_duration)" />
+	</include>
+
+	<include file="$(find rosplan_planning_system)/launch/includes/simulated_action.launch" >
+		<arg name="pddl_action_name" value="scan_place" />
+		<arg name="action_probability"	value="$(arg action_probability)" />
+		<arg name="action_duration"		value="$(arg action_duration)" />
+	</include>
+
+	<include file="$(find rosplan_planning_system)/launch/includes/simulated_action.launch" >
+		<arg name="pddl_action_name" value="take_object" />
+		<arg name="action_probability"	value="$(arg action_probability)" />
+		<arg name="action_duration"		value="$(arg action_duration)" />
+	</include>
 
 </launch>
