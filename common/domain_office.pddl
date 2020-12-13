@@ -5,7 +5,6 @@
 (:types
 	waypoint robot person - locatable
         object
-
 )
 
 (:predicates
