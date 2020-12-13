@@ -21,6 +21,7 @@
     (person_not_found  person1)
     (person_not_found  person2)
     (person_nexto person2 wp15)
+
     (not_occupied wp0)
     (not_occupied wp1)
     (not_occupied wp2)

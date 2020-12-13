@@ -5,8 +5,8 @@
 	<arg name="dispatcher" default="simple" /> <!-- simple, esterel or online -->
 
 	<!-- Commonly modified and compulsory arguments -->
-	<arg name="domain_path"  			value="$(find plan_library)/common/domain_office.pddl"/>
-	<arg name="problem_path" 			value="$(find plan_library)/common/problem_office.pddl"/>
+	<arg name="domain_path"  			default="$(find plan_library)/common/benchmarks/office/domain_office.pddl"/>
+	<arg name="problem_path" 			default="$(find plan_library)/common/benchmarks/office/problem_office.pddl"/>
 	<arg name="planning_language" 		value="pddl" />
 	<arg name="generated_problem_path"  default="$(find plan_library)/common/problem.pddl" />
 	<arg name="planner_command" 		value="timeout 10 $(find rosplan_planning_system)/common/bin/popf DOMAIN PROBLEM" />
@@ -22,7 +22,7 @@
 	<arg name="plan_topic"     			  default="complete_plan" />
 	<arg name="action_dispatch_topic"     default="action_dispatch" />
 	<arg name="action_feedback_topic"     default="action_feedback" />
-	<arg name="stored_plans_path" 		  default="$(find plan_library)/common/office_planlib.yaml" />
+	<arg name="stored_plans_path" 		  default="$(find plan_library)/common/library/office.yaml" />
 	<arg name="data_path"            	  default="$(find plan_library)/common/" />
 	<arg name="use_unknowns" 			  default="false" />
 	<arg name="use_problem_topic"         default="true" />
