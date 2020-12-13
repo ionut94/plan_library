@@ -15,6 +15,10 @@ RUN apt install ros-melodic-rviz-visual-tools -qq -y &&\
     rosdep update &&\
     rosdep install --from-paths src/plan_library --ignore-src -q -r -y
 
+# Patch rosplan for failing simulated actions. Thanks Stefan Bezrucav!
+RUN cd src/rosplan &&\
+	git apply ../plan_library/experiments/action_interface_patch.patch
+
 # Build workspace
 RUN catkin build --summarize --no-status
 
