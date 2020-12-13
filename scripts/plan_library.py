@@ -68,13 +68,13 @@ class PlanLibrary:
                 self._problem_gen.call()
 
                 while not self._plan_lib_checked:
-                    rospy.sleep(0.5)
+                    rospy.sleep(1.5)
                 self._plan_lib_checked = False
                 if not self.plan_in_lib:
                     self._planner.call()
 
                 while not self._problem_sent:
-                    rospy.sleep(1)
+                    rospy.sleep(1.5)
                 self._problem_sent = False
 
                 self._parse_plan.call()
@@ -92,7 +92,7 @@ class PlanLibrary:
         if self.use_library:
             # Add new plan to library
             self.problem_dictionary.update({"plan": self.latest_plan})
-            self.plan_dictionary[str(uuid.uuid1().node)] = self.problem_dictionary
+            self.plan_dictionary[str(uuid.uuid1())] = self.problem_dictionary
             self.save_plan_library()
 
         self.plan_lib_output_pub.publish(self.latest_plan)
@@ -111,6 +111,7 @@ class PlanLibrary:
                 rospy.loginfo("KCL: (%s) There is a plan for this problem in the plan library" % self.node_name)
                 self.plan_lib_output_pub.publish(plans[0])
                 self.plan_in_lib = True
+                self._problem_sent = True
             else:
                 rospy.loginfo("KCL: (%s) Problem not in the plan library" % self.node_name)
                 self.planner_input_pub.publish(self.latest_problem)
@@ -155,20 +156,20 @@ class PlanLibrary:
         init_dict = {}
         goal_dict = {}
 
-        for line in string_to_trim.split("\n"):
-            if ":objects" in line:
-                status = [True, False, False]
-            elif ":init" in line:
-                status = [False, True, False]
-            elif ":goal" in line:
-                status = [False, False, True]
-            elif (status[0] or status[1] or status[2]) and len(line.replace("(", "").replace(")", "")) > 0:
-                if status[0]:
-                    object_dict[line.split("-")[1]] = filter(None, line.split("-")[0].split(" "))
-                elif status[1]:
-                    self.process_line_for_planlib(init_dict, line)
-                elif status[2]:
-                    self.process_line_for_planlib(goal_dict, line)
+        # for line in string_to_trim.split("\n"):
+        #     if ":objects" in line:
+        #         status = [True, False, False]
+        #     elif ":init" in line:
+        #         status = [False, True, False]
+        #     elif ":goal" in line:
+        #         status = [False, False, True]
+        #     elif (status[0] or status[1] or status[2]) and len(line.replace("(", "").replace(")", "")) > 0:
+        #         if status[0]:
+        #             object_dict[line.split("-")[1]] = filter(None, line.split("-")[0].split(" "))
+        #         elif status[1]:
+        #             self.process_line_for_planlib(init_dict, line)
+        #         elif status[2]:
+        #             self.process_line_for_planlib(goal_dict, line)
 
         problem_dict = {"problem": string_to_trim.replace("\n", ""), "object": object_dict, "init": init_dict,
                         "goal": goal_dict}
