@@ -9,6 +9,9 @@ from rosplan_knowledge_msgs.srv import GetDomainNameService, GetDomainTypeServic
 import yaml
 import uuid
 import pprint
+import time
+import pandas as pd
+import os
 
 pp = pprint.PrettyPrinter(indent=1)
 
@@ -18,6 +21,8 @@ class PlanLibrary:
     def __init__(self):
         self.node_name = rospy.get_name()
         self.use_library = rospy.get_param("~use_library")
+        self.problem_name = str(rospy.get_param("~problem_path")).split("/")[-1]
+        self.action_probability = str(rospy.get_param("~action_probability"))
 
         if self.use_library:
             rospy.loginfo("KCL: (%s) Plan Library initialising..." % self.node_name)
@@ -34,14 +39,33 @@ class PlanLibrary:
             # Get the domain from plan lib or initialise it from KB
             if self.plan_dictionary is None:
                 self.plan_dictionary = {"domain": self.get_domain_from_KB()}
-
             self.domain = self.plan_dictionary["domain"]
-        else:
-            rospy.loginfo("KCL: (%s) Plan Library not in use" % self.node_name)
 
+            # Get the location of the results with plan lib
+            self.results_path = str(rospy.get_param("~results_path")) + "results_with_plan_lib.csv"
+        else:
+            # Get the location of the results with plan lib
+            rospy.loginfo("KCL: (%s) Plan Library not in use" % self.node_name)
+            self.results_path = str(rospy.get_param("~results_path")) + "results_no_plan_lib.csv"
+
+        # Load results and check if empty.
+        if os.path.getsize(self.results_path) == 0:
+            self.results_df = pd.DataFrame(
+                columns=["name", "action probability","planned", "used planner", "used plan lib", "time planning", "time checking plan lib",
+                         "total time"], index=None)
+        else:
+            self.results_df = pd.read_csv(self.results_path)
+
+        # Variables for synchronisation
         self.plan_in_lib = False
         self._plan_lib_checked = False
         self._problem_sent = False
+
+        # Variables needed for evaluation
+        self.replan = 0
+        self.used_planner = 0
+        self.time_planning = []
+        self.time_checking_plan_library = []
 
         # TODO make service that calls all the services needed to run plan lib until successes
         self._execute_current_problem = rospy.Service("~execute_current_problem", Trigger, self.run_problem)
@@ -63,15 +87,26 @@ class PlanLibrary:
     def run_problem(self, srv):
         res = DispatchServiceResponse()
 
+        self.replan = 0
+        self.used_planner = 0
+        self.time_planning = []
+        self.time_checking_plan_library = []
+
         while not res.goal_achieved:
             try:
                 self._problem_gen.call()
+                self.replan += 1
 
                 while not self._plan_lib_checked:
                     rospy.sleep(1.5)
                 self._plan_lib_checked = False
+
                 if not self.plan_in_lib:
+                    self.used_planner += 1
+                    start = time.time()
                     self._planner.call()
+                    end = time.time()
+                    self.time_planning.append(end - start)
 
                 while not self._problem_sent:
                     rospy.sleep(1.5)
@@ -82,7 +117,35 @@ class PlanLibrary:
             except rospy.ServiceException as e:
                 rospy.logerr(rospy.get_name() + ": Service call failed: %s" % e)
 
-        return TriggerResponse(True, 'problem planned and executed')
+        rospy.loginfo("KCL: (%s) Had to plan %s times, using the planner for %s times and the plan library for the "
+                      "other %s times" % (self.node_name, self.replan, self.used_planner, self.replan -
+                                          self.used_planner))
+        if self.replan > 0:
+            rospy.loginfo("KCL: (%s) Total time spent planning is %s, with an average of %s" % (
+                self.node_name, sum(self.time_planning), sum(self.time_planning) / len(self.time_planning)))
+
+        if self.use_library:
+            rospy.loginfo("KCL: (%s) Total time spent checking the plan library is %s, with an average of %s" % (
+                self.node_name, sum(self.time_checking_plan_library),
+                sum(self.time_checking_plan_library) / len(self.time_checking_plan_library)))
+            self.write_results()
+
+        return TriggerResponse(True, 'The goal has been reached')
+
+    def write_results(self):
+        # HEADERS: "name", "action probability", "planned", "used planner", "used plan lib", "time planning",
+        # "time checking plan lib", "total time"
+        self.results_df = self.results_df.append({"name": self.problem_name,
+                                                  "action probability": self.action_probability,
+                                                  "planned": self.replan,
+                                                  "used planner": self.used_planner,
+                                                  "used plan lib": self.replan-self.used_planner,
+                                                  "time planning": sum(self.time_planning),
+                                                  "time checking plan lib": sum(self.time_checking_plan_library),
+                                                  "total time": sum(self.time_planning) + sum(self.time_checking_plan_library)
+                                                  }, ignore_index=True)
+        self.results_df.to_csv(self.results_path, index=False)
+
 
     # Receive plan and save it into the planLib object
     def planner_callback(self, data):
@@ -105,7 +168,10 @@ class PlanLibrary:
         self.problem_dictionary = self.parse_problem_to_dict(self.latest_problem)
 
         if self.use_library:
+            start = time.time()
             check, plans = self.check_for_plan_in_library()
+            end = time.time()
+            self.time_checking_plan_library.append(end - start)
 
             if check:
                 rospy.loginfo("KCL: (%s) There is a plan for this problem in the plan library" % self.node_name)

@@ -15,6 +15,7 @@
 	<arg name="action_duration"			value="0.5" />
 
 	<!-- Not commonly modified arguments -->
+	<arg name="results_path"			  default="$(find plan_library)/experiments/results/" />
 	<arg name="use_library" 			  default="true" />
 	<arg name="knowledge_base" 			  default="rosplan_knowledge_base" />
 	<arg name="planner_topic"  			  default="planner_output" />
@@ -58,6 +59,9 @@
 		<param name="planner_input_topic" 	value="$(arg planner_input_topic)" />
 		<param name="plan_from_lib_topic"	value="$(arg plan_from_lib_topic)" />
 		<param name="use_library" 			value="$(arg use_library)" />
+		<param name="results_path"			value="$(arg results_path)" />
+		<param name="problem_path"			value="$(arg problem_path)" />
+		<param name="action_probability"	value="$(arg action_probability)" />
 	</node>
 
 
@@ -142,7 +146,7 @@
 
 	<include file="$(find rosplan_planning_system)/launch/includes/simulated_action.launch" >
 		<arg name="pddl_action_name" value="goto_waypoint" />
-		<arg name="action_probability"	value="1.0" />
+		<arg name="action_probability"	value="$(arg action_probability)" />
 		<arg name="action_duration"		value="$(arg action_duration)" />
 	</include>
 
