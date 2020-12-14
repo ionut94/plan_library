@@ -150,7 +150,6 @@ class PlanLibrary:
     # Receive plan and save it into the planLib object
     def planner_callback(self, data):
         self.latest_plan = data.data
-        self.latest_plan_time = rospy.Time.now()
 
         if self.use_library:
             # Add new plan to library
@@ -164,7 +163,7 @@ class PlanLibrary:
     # Receive problem and save it into the planLib object
     def problem_callback(self, data):
         self.latest_problem = data.data
-        self.latest_problem_time = rospy.Time.now()
+
         self.problem_dictionary = self.parse_problem_to_dict(self.latest_problem)
 
         if self.use_library:
@@ -194,7 +193,7 @@ class PlanLibrary:
 
         for key, plan_lib_elem in self.plan_dictionary.iteritems():
             if key not in "domain":
-                if plan_lib_elem['problem'] in self.latest_problem.replace("\n", ""):
+                if str(plan_lib_elem['problem']) in self.latest_problem.replace("\n", ""):
                     count += 1
                     plans.append(plan_lib_elem['plan'])
                 else:
@@ -340,6 +339,8 @@ class PlanLibrary:
 
         with open(self.plans_path) as plan_lib:
             loaded_plan_lib = yaml.load(plan_lib, Loader=yaml.FullLoader)
+
+        rospy.loginfo("KCL: (%s) Plan Library loaded" % self.node_name)
 
         return loaded_plan_lib
 

@@ -20,6 +20,7 @@
     (not_holding_object robot_assistant)
     (person_not_found  person1)
     (person_not_found  person2)
+    (person_not_found person3)
     (person_nexto person2 wp15)
 
     (not_occupied wp0)
@@ -953,6 +954,7 @@
     (object_at mug wp5)
     (object_at post1 wp6)
     (person_found person1)
+    (person_found person3)
     (person_asked person2)
     (object_at post2 person2)
 ))
