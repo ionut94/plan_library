@@ -19,6 +19,9 @@ RUN apt install ros-melodic-rviz-visual-tools -qq -y &&\
 RUN cd src/rosplan &&\
 	git apply ../plan_library/experiments/action_interface_patch.patch
 
+RUN sed -i "s|int main(int argc, char \*\*argv) {|int main(int argc, char **argv) {\n                /\* initialize random seed: \*/\n                srand (time(NULL));|g" /root/ws/src/rosplan/rosplan_planning_system/src/ActionInterface/RPSimulatedActionInterface.cpp
+
+
 # Build workspace
 RUN catkin build --summarize --no-status
 
