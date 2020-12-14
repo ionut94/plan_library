@@ -3,24 +3,42 @@
 (:objects
     wp0 wp1 wp2 wp3 wp4 wp5 wp6 wp7 wp8 wp9 wp10 wp11 wp12 wp13 wp14 wp15 wp16 wp17 wp18 wp19 wp20 wp21 wp22 wp23 wp24 wp25 wp26 wp27 wp28 wp29 wp30 wp31 wp32 wp33 wp34 wp35 wp36 wp37 wp38 wp39 wp40 wp41 wp42 wp43 wp44 wp45 wp46 wp47 wp48 wp49 wp50 wp51 wp52 wp53 wp54 wp55 wp56 wp57 - waypoint
     robot_assistant - robot
-    paper mug post1 post2 - object
-    person1 person2 person3 - person
+    paper paper2 paper3 mug mug2 post1 post2 post3 post4 - object
+    person1 person2 person3 person4 person5 - person
 )
 (:init
-    (robot_at robot_assistant wp3)
+    (robot_at robot_assistant wp55)
     (not_moving robot_assistant)
     (object_at paper wp1)
+    (object_at paper2 wp15)
+    (object_at paper3 wp11)
     (object_at mug wp2)
-    (object_at post1 wp38)
-    (object_at post2 wp38)
+    (object_at mug2 wp22)
+    (object_at post1 wp46)
+    (object_at post2 wp15)
+    (object_at post3 wp11)
+    (object_at post4 wp22)
     (graspable paper)
+    (graspable paper2)
+    (graspable paper3)
     (graspable mug)
+    (graspable mug2)
     (graspable post1)
     (graspable post2)
+    (graspable post3)
+    (graspable post4)
     (not_holding_object robot_assistant)
-    (person_not_found  person1)
-    (person_not_found  person2)
+    (person_not_found person1)
+    (person_not_found person2)
+    (person_not_found person3)
+    (person_not_found person4)
+    (person_not_found person5)
+    (person_nexto person1 wp55)
     (person_nexto person2 wp15)
+    (person_nexto person3 wp1)
+    (person_nexto person4 wp42)
+    (person_nexto person5 wp41)
+
 
     (not_occupied wp0)
     (not_occupied wp1)
@@ -948,12 +966,19 @@
 
 )
 (:goal (and
-    (robot_at robot_assistant wp1)
-    (object_at paper wp4)
+    (robot_at robot_assistant wp55)
+    (object_at paper wp55)
     (object_at mug wp5)
     (object_at post1 wp6)
     (person_found person1)
+    (person_found person5)
     (person_asked person2)
+    (person_asked person3)
+    (person_asked person4)
+    (object_at paper3 person1)
     (object_at post2 person2)
+    (object_at post3 person3)
+    (object_at post4 person5)
+    (object_at paper2 person4)
 ))
 )
