@@ -51,8 +51,8 @@ class PlanLibrary:
         # Load results and check if empty.
         if os.path.getsize(self.results_path) == 0:
             self.results_df = pd.DataFrame(
-                columns=["name", "action probability","planned", "used planner", "used plan lib", "time planning", "time checking plan lib",
-                         "total time"], index=None)
+                columns=["name", "action probability", "planned", "used planner", "used plan lib", "time planning",
+                         "time checking plan lib", "total time", "plan lib size"], index=None)
         else:
             self.results_df = pd.read_csv(self.results_path)
 
@@ -98,7 +98,7 @@ class PlanLibrary:
                 self.replan += 1
 
                 while not self._plan_lib_checked:
-                    rospy.sleep(1.5)
+                    rospy.sleep(1)
                 self._plan_lib_checked = False
 
                 if not self.plan_in_lib:
@@ -109,7 +109,7 @@ class PlanLibrary:
                     self.time_planning.append(end - start)
 
                 while not self._problem_sent:
-                    rospy.sleep(1.5)
+                    rospy.sleep(1)
                 self._problem_sent = False
 
                 self._parse_plan.call()
@@ -129,6 +129,7 @@ class PlanLibrary:
                 self.node_name, sum(self.time_checking_plan_library),
                 sum(self.time_checking_plan_library) / len(self.time_checking_plan_library)))
             self.write_results()
+            self.save_plan_library()
 
         return TriggerResponse(True, 'The goal has been reached')
 
@@ -139,13 +140,14 @@ class PlanLibrary:
                                                   "action probability": self.action_probability,
                                                   "planned": self.replan,
                                                   "used planner": self.used_planner,
-                                                  "used plan lib": self.replan-self.used_planner,
+                                                  "used plan lib": self.replan - self.used_planner,
                                                   "time planning": sum(self.time_planning),
                                                   "time checking plan lib": sum(self.time_checking_plan_library),
-                                                  "total time": sum(self.time_planning) + sum(self.time_checking_plan_library)
+                                                  "total time": sum(self.time_planning) +
+                                                                sum(self.time_checking_plan_library),
+                                                  "plan lib size": len(self.plan_dictionary)
                                                   }, ignore_index=True)
         self.results_df.to_csv(self.results_path, index=False)
-
 
     # Receive plan and save it into the planLib object
     def planner_callback(self, data):
@@ -155,7 +157,6 @@ class PlanLibrary:
             # Add new plan to library
             self.problem_dictionary.update({"plan": self.latest_plan})
             self.plan_dictionary[str(uuid.uuid1())] = self.problem_dictionary
-            self.save_plan_library()
 
         self.plan_lib_output_pub.publish(self.latest_plan)
         self._problem_sent = True
@@ -215,8 +216,10 @@ class PlanLibrary:
             return False, plans
 
     # take the problem file and parse it into the planLib object format needed
-    def parse_problem_to_dict(self, string_to_trim):
-        status = [False, False, False]
+    @staticmethod
+    def parse_problem_to_dict(string_to_trim):
+        # TODO: add the rest of the plan selection elements in the dict
+        # status = [False, False, False]
         object_dict = {}
         init_dict = {}
         goal_dict = {}
