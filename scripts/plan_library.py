@@ -35,17 +35,14 @@ class PlanLibrary:
             self.plans_path = str(rospy.get_param("~stored_plans_path"))
             self.problem_dictionary = {}
 
-            # Get the domain from plan lib or initialise it from KB
-            # if self.plan_dictionary is None:
-            #     self.plan_dictionary = {"domain": self.get_domain_from_KB()}
-            # self.domain = self.plan_dictionary["domain"]
-
-            # Get the location of the results with plan lib
-            self.results_path = str(rospy.get_param("~results_path")) + "results_with_plan_lib.csv"
+            self.results_path = str(rospy.get_param("~results_path")) + self.problem_name[:-5] + "_with_plan_lib.csv"
         else:
             # Get the location of the results with plan lib
             rospy.loginfo("KCL: (%s) Plan Library not in use" % self.node_name)
-            self.results_path = str(rospy.get_param("~results_path")) + "results_no_plan_lib.csv"
+            self.results_path = str(rospy.get_param("~results_path")) + self.problem_name[:-5] + "_no_plan_lib.csv"
+
+        if not os.path.exists(self.results_path):
+            os.mknod(self.results_path)
 
         # Load results and check if empty.
         if os.path.getsize(self.results_path) == 0:
