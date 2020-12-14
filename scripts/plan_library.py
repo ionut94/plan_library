@@ -125,6 +125,8 @@ class PlanLibrary:
             except rospy.ServiceException as e:
                 rospy.logerr(rospy.get_name() + ": Service call failed: %s" % e)
 
+        self.write_results()
+
         rospy.loginfo("KCL: (%s) Had to plan %s times, using the planner for %s times and the plan library for the "
                       "other %s times" % (self.node_name, self.replan, self.used_planner, self.replan -
                                           self.used_planner))
@@ -136,7 +138,6 @@ class PlanLibrary:
             rospy.loginfo("KCL: (%s) Total time spent checking the plan library is %s, with an average of %s" % (
                 self.node_name, sum(self.time_checking_plan_library),
                 sum(self.time_checking_plan_library) / len(self.time_checking_plan_library)))
-            self.write_results()
             self.save_plan_library()
             rospy.loginfo("KCL: (%s) Plan Library saved" % self.node_name)
 
@@ -145,17 +146,30 @@ class PlanLibrary:
     def write_results(self):
         # HEADERS: "name", "action probability", "planned", "used planner", "used plan lib", "time planning",
         # "time checking plan lib", "total time"
-        self.results_df = self.results_df.append({"name": self.problem_name,
-                                                  "action probability": self.action_probability,
-                                                  "planned": self.replan,
-                                                  "used planner": self.used_planner,
-                                                  "used plan lib": self.replan - self.used_planner,
-                                                  "time planning": sum(self.time_planning),
-                                                  "time checking plan lib": sum(self.time_checking_plan_library),
-                                                  "total time": sum(self.time_planning) +
-                                                                sum(self.time_checking_plan_library),
-                                                  "plan lib size": len(self.plan_dictionary)
-                                                  }, ignore_index=True)
+
+        if self.use_library:
+            self.results_df = self.results_df.append({"name": self.problem_name,
+                                                      "action probability": self.action_probability,
+                                                      "planned": self.replan,
+                                                      "used planner": self.used_planner,
+                                                      "used plan lib": self.replan - self.used_planner,
+                                                      "time planning": sum(self.time_planning),
+                                                      "time checking plan lib": sum(self.time_checking_plan_library),
+                                                      "total time": sum(self.time_planning) +
+                                                                    sum(self.time_checking_plan_library),
+                                                      "plan lib size": len(self.plan_dictionary)
+                                                      }, ignore_index=True)
+        else:
+            self.results_df = self.results_df.append({"name": self.problem_name,
+                                                      "action probability": self.action_probability,
+                                                      "planned": self.replan,
+                                                      "used planner": self.used_planner,
+                                                      "used plan lib": 0,
+                                                      "time planning": sum(self.time_planning),
+                                                      "time checking plan lib": 0,
+                                                      "total time": sum(self.time_planning),
+                                                      "plan lib size": 0
+                                                      }, ignore_index=True)
         self.results_df.to_csv(self.results_path, index=False)
 
     # Receive plan and save it into the planLib object
