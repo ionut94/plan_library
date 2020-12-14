@@ -141,6 +141,7 @@ class PlanLibrary:
             self.save_plan_library()
             rospy.loginfo("KCL: (%s) Plan Library saved" % self.node_name)
 
+        rospy.sleep(5)
         rospy.signal_shutdown("Experiment ended")
         return TriggerResponse(True, 'The goal has been reached')
 
