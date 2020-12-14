@@ -33,13 +33,12 @@ class PlanLibrary:
             self.latest_problem = ""
             self.latest_problem_time = 0
             self.plans_path = str(rospy.get_param("~stored_plans_path"))
-            self.plan_dictionary = self.load_plan_library()
             self.problem_dictionary = {}
 
             # Get the domain from plan lib or initialise it from KB
-            if self.plan_dictionary is None:
-                self.plan_dictionary = {"domain": self.get_domain_from_KB()}
-            self.domain = self.plan_dictionary["domain"]
+            # if self.plan_dictionary is None:
+            #     self.plan_dictionary = {"domain": self.get_domain_from_KB()}
+            # self.domain = self.plan_dictionary["domain"]
 
             # Get the location of the results with plan lib
             self.results_path = str(rospy.get_param("~results_path")) + "results_with_plan_lib.csv"
@@ -92,6 +91,15 @@ class PlanLibrary:
         self.time_planning = []
         self.time_checking_plan_library = []
 
+        if self.use_library:
+            self.plan_dictionary = self.load_plan_library()
+            self.problem_dictionary = {}
+
+            # Get the domain from plan lib or initialise it from KB
+            if self.plan_dictionary is None:
+                self.plan_dictionary = {"domain": self.get_domain_from_KB()}
+            self.domain = self.plan_dictionary["domain"]
+
         while not res.goal_achieved:
             try:
                 self._problem_gen.call()
@@ -130,6 +138,7 @@ class PlanLibrary:
                 sum(self.time_checking_plan_library) / len(self.time_checking_plan_library)))
             self.write_results()
             self.save_plan_library()
+            rospy.loginfo("KCL: (%s) Plan Library saved" % self.node_name)
 
         return TriggerResponse(True, 'The goal has been reached')
 
@@ -197,6 +206,7 @@ class PlanLibrary:
                 if str(plan_lib_elem['problem']) in self.latest_problem.replace("\n", ""):
                     count += 1
                     plans.append(plan_lib_elem['plan'])
+                    break
                 else:
                     # TODO Check for goals
                     pass
