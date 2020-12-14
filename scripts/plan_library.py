@@ -42,7 +42,7 @@ class PlanLibrary:
             self.results_path = str(rospy.get_param("~results_path")) + self.problem_name[:-5] + "_no_plan_lib.csv"
 
         if not os.path.exists(self.results_path):
-            os.mknod(self.results_path)
+            with open(self.results_path, 'w'): pass
 
         # Load results and check if empty.
         if os.path.getsize(self.results_path) == 0:
