@@ -1,0 +1,6 @@
+name,action probability,planned,used planner,used plan lib,time planning,time checking plan lib,total time,plan lib size
+problem_office_17.pddl,0.7,51,51,0,200.15817403793326,0,200.15817403793326,0
+problem_office_17.pddl,0.7,48,48,0,126.41773819923401,0,126.41773819923401,0
+problem_office_17.pddl,0.7,37,37,0,83.020751953125,0,83.020751953125,0
+problem_office_17.pddl,0.7,40,40,0,97.33536839485168,0,97.33536839485168,0
+problem_office_17.pddl,0.7,40,40,0,59.88981294631958,0,59.88981294631958,0
