@@ -7,7 +7,7 @@
     person1 person2 person3 person4 - person
 )
 (:init
-    (robot_at robot_assistant wp2)
+    (robot_at robot_assistant wp11)
     (not_moving robot_assistant)
     (object_at paper wp1)
     (object_at paper2 wp15)
@@ -15,7 +15,7 @@
     (object_at mug wp2)
     (object_at mug2 wp55)
     (object_at post1 wp32)
-    (object_at post2 wp38)
+    (object_at post2 wp22)
     (object_at post3 wp57)
     (graspable paper)
     (graspable paper2)
@@ -32,7 +32,7 @@
     (person_not_found person4)
     (person_nexto person1 wp55)
     (person_nexto person2 wp15)
-    (person_nexto person3 wp1)
+    (person_nexto person3 wp15)
     (person_nexto person4 wp42)
 
 
@@ -972,9 +972,9 @@
     (person_asked person3)
     (person_asked person4)
     (object_at paper3 person1)
-    (object_at post2 person2)
-    (object_at post3 person3)
-    (object_at paper2 person4)
-    (object_at mug2 person2)
+    (object_at post2 person1)
+    (object_at post3 person1)
+    (object_at paper2 person1)
+    (object_at mug2 person1)
 ))
 )
